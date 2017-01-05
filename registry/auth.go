@@ -33,7 +33,7 @@ func loginV1(authConfig *cliconfig.AuthConfig, registryEndpoint *Endpoint) (stri
 	logrus.Debugf("attempting v1 login to registry endpoint %s", registryEndpoint)
 
 	if serverAddress == "" {
-		return "", fmt.Errorf("Server Error: Server Address not set.")
+		return "", fmt.Errorf("server error: Server Address not set")
 	}
 
 	loginAgainstOfficialIndex := serverAddress == IndexServer
@@ -44,20 +44,20 @@ func loginV1(authConfig *cliconfig.AuthConfig, registryEndpoint *Endpoint) (stri
 
 	jsonBody, err := json.Marshal(authCopy)
 	if err != nil {
-		return "", fmt.Errorf("Config Error: %s", err)
+		return "", fmt.Errorf("config error: %s", err)
 	}
 
 	// using `bytes.NewReader(jsonBody)` here causes the server to respond with a 411 status.
 	b := strings.NewReader(string(jsonBody))
 	req1, err := registryEndpoint.client.Post(serverAddress+"users/", "application/json; charset=utf-8", b)
 	if err != nil {
-		return "", fmt.Errorf("Server Error: %s", err)
+		return "", fmt.Errorf("server error: %s", err)
 	}
 	reqStatusCode = req1.StatusCode
 	defer req1.Body.Close()
 	reqBody, err = ioutil.ReadAll(req1.Body)
 	if err != nil {
-		return "", fmt.Errorf("Server Error: [%#v] %s", reqStatusCode, err)
+		return "", fmt.Errorf("server error: [%#v] %s", reqStatusCode, err)
 	}
 
 	if reqStatusCode == 201 {
@@ -84,20 +84,20 @@ func loginV1(authConfig *cliconfig.AuthConfig, registryEndpoint *Endpoint) (stri
 			if resp.StatusCode == 200 {
 				return "Login Succeeded", nil
 			} else if resp.StatusCode == 401 {
-				return "", fmt.Errorf("Wrong login/password, please try again")
+				return "", fmt.Errorf("wrong login/password, please try again")
 			} else if resp.StatusCode == 403 {
 				if loginAgainstOfficialIndex {
-					return "", fmt.Errorf("Login: Account is not Active. Please check your e-mail for a confirmation link.")
+					return "", fmt.Errorf("login: Account is not Active. Please check your e-mail for a confirmation link")
 				}
 				// *TODO: Use registry configuration to determine what this says, if anything?
-				return "", fmt.Errorf("Login: Account is not Active. Please see the documentation of the registry %s for instructions how to activate it.", serverAddress)
+				return "", fmt.Errorf("login: Account is not Active. Please see the documentation of the registry %s for instructions how to activate it", serverAddress)
 			} else if resp.StatusCode == 500 { // Issue #14326
 				logrus.Errorf("%s returned status code %d. Response Body :\n%s", req.URL.String(), resp.StatusCode, body)
-				return "", fmt.Errorf("Internal Server Error")
+				return "", fmt.Errorf("internal server error")
 			}
-			return "", fmt.Errorf("Login: %s (Code: %d; Headers: %s)", body, resp.StatusCode, resp.Header)
+			return "", fmt.Errorf("login: %s (Code: %d; Headers: %s)", body, resp.StatusCode, resp.Header)
 		}
-		return "", fmt.Errorf("Registration: %s", reqBody)
+		return "", fmt.Errorf("registration: %s", reqBody)
 
 	} else if reqStatusCode == 401 {
 		// This case would happen with private registries where /v1/users is
@@ -116,13 +116,13 @@ func loginV1(authConfig *cliconfig.AuthConfig, registryEndpoint *Endpoint) (stri
 		if resp.StatusCode == 200 {
 			return "Login Succeeded", nil
 		} else if resp.StatusCode == 401 {
-			return "", fmt.Errorf("Wrong login/password, please try again")
+			return "", fmt.Errorf("wrong login/password, please try again")
 		} else {
-			return "", fmt.Errorf("Login: %s (Code: %d; Headers: %s)", body,
+			return "", fmt.Errorf("login: %s (Code: %d; Headers: %s)", body,
 				resp.StatusCode, resp.Header)
 		}
 	} else {
-		return "", fmt.Errorf("Unexpected status code [%d] : %s", reqStatusCode, reqBody)
+		return "", fmt.Errorf("unexpected status code [%d] : %s", reqStatusCode, reqBody)
 	}
 	return status, nil
 }

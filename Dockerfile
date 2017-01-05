@@ -127,7 +127,7 @@ RUN git clone https://github.com/golang/lint.git /go/src/github.com/golang/lint 
 RUN gem install --no-rdoc --no-ri fpm --version 1.3.2
 
 # Install registry
-ENV REGISTRY_COMMIT 2317f721a3d8428215a2b65da4ae85212ed473b4
+ENV REGISTRY_COMMIT ec87e9b6971d831f0eff752ddb54fb64693e51cd
 RUN set -x \
 	&& export GOPATH="$(mktemp -d)" \
 	&& git clone https://github.com/docker/distribution.git "$GOPATH/src/github.com/docker/distribution" \
@@ -137,7 +137,7 @@ RUN set -x \
 	&& rm -rf "$GOPATH"
 
 # Install notary server
-ENV NOTARY_COMMIT 77bced079e83d80f40c1f0a544b1a8a3b97fb052
+ENV NOTARY_COMMIT 8e8122eb5528f621afcd4e2854c47302f17392f7
 RUN set -x \
 	&& export GOPATH="$(mktemp -d)" \
 	&& git clone https://github.com/docker/notary.git "$GOPATH/src/github.com/docker/notary" \

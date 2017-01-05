@@ -26,7 +26,7 @@ func (s *Server) newServer(proto, addr string) ([]serverCloser, error) {
 		ls = append(ls, l)
 
 	default:
-		return nil, errors.New("Invalid protocol format. Windows only supports tcp.")
+		return nil, errors.New("invalid protocol format. Windows only supports tcp")
 	}
 
 	var res []serverCloser

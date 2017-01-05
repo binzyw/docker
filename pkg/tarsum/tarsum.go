@@ -146,7 +146,7 @@ var (
 	}
 )
 
-// TarSum default is "sha256"
+// DefaultTHash default is "sha256"
 var DefaultTHash = NewTHash("sha256", sha256.New)
 
 type simpleTHash struct {
