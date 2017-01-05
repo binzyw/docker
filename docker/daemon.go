@@ -76,6 +76,7 @@ func NewDaemonCli() *DaemonCli {
 
 	// TODO(tiborvass): remove InstallFlags?
 	daemonConfig := new(daemon.Config)
+	daemonConfig.LogConfig.Config = make(map[string]string)
 	daemonConfig.InstallFlags(daemonFlags, presentInHelp)
 	daemonConfig.InstallFlags(flag.CommandLine, absentFromHelp)
 	registryOptions := new(registry.Options)
@@ -100,6 +101,7 @@ func migrateKey() (err error) {
 				err = os.Remove(oldPath)
 			} else {
 				logrus.Warnf("Key migration failed, key file not removed at %s", oldPath)
+				os.Remove(newPath)
 			}
 		}()
 
@@ -211,9 +213,11 @@ func (cli *DaemonCli) CmdDaemon(args ...string) error {
 		cli.LogConfig.Config = make(map[string]string)
 	}
 
-	serverConfig := &apiserver.Config{
-		Logging: true,
-		Version: dockerversion.VERSION,
+	serverConfig := &apiserver.ServerConfig{
+		Logging:     true,
+		EnableCors:  cli.EnableCors,
+		CorsHeaders: cli.CorsHeaders,
+		Version:     dockerversion.VERSION,
 	}
 	serverConfig = setPlatformServerConfig(serverConfig, cli.Config)
 
@@ -224,7 +228,7 @@ func (cli *DaemonCli) CmdDaemon(args ...string) error {
 		}
 		tlsConfig, err := tlsconfig.Server(*commonFlags.TLSOptions)
 		if err != nil {
-			logrus.Fatalf("foobar: %v", err)
+			logrus.Fatal(err)
 		}
 		serverConfig.TLSConfig = tlsConfig
 	}

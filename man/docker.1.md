@@ -23,7 +23,7 @@ its own man page which explain usage and arguments.
 To see the man page for a command run **man docker <command>**.
 
 # OPTIONS
-**-h**, **--help**
+**--help**
   Print usage statement
 
 **--api-cors-header**=""
@@ -50,8 +50,17 @@ To see the man page for a command run **man docker <command>**.
 **--default-gateway-v6**=""
   IPv6 address of the container default gateway
 
+**--default-ulimit**=[]
+  Set default ulimits for containers.
+
+**--disable-legacy-registry=**true|false
+  Do not contact legacy registries
+
 **--dns**=""
   Force Docker to use specific DNS servers
+
+**--dns-search**=[]
+  DNS search domains to use.
 
 **-e**, **--exec-driver**=""
   Force Docker to use specific exec driver. Default is `native`.
@@ -60,7 +69,7 @@ To see the man page for a command run **man docker <command>**.
   Set exec driver options. See EXEC DRIVER OPTIONS.
 
 **--exec-root**=""
-  Path to use as the root of the Docker execdriver. Default is `/var/run/docker`.
+  Path to use as the root of the Docker exec driver. Default is `/var/run/docker`.
 
 **--fixed-cidr**=""
   IPv4 subnet for fixed IPs (e.g., 10.20.0.0/16); this subnet must be nested in the bridge subnet (which is defined by \-b or \-\-bip)
@@ -82,6 +91,9 @@ unix://[/path/to/socket] to use.
 
 **--icc**=*true*|*false*
   Allow unrestricted inter\-container and Docker daemon host communication. If disabled, containers can still be linked together using **--link** option (see **docker-run(1)**). Default is true.
+
+**--insecure-registry**=[]
+  Enable insecure registry communication.
 
 **--ip**=""
   Default IP address to use when binding container ports. Default is `0.0.0.0`.
@@ -131,10 +143,19 @@ unix://[/path/to/socket] to use.
 **--storage-opt**=[]
   Set storage driver options. See STORAGE DRIVER OPTIONS.
 
-**-tls**=*true*|*false*
+**--tls**=*true*|*false*
   Use TLS; implied by --tlsverify. Default is false.
 
-**-tlsverify**=*true*|*false*
+**--tlscacert**=~/.docker/ca.pem
+  Trust certs signed only by this CA.
+
+**--tlscert**=~/.docker/cert.pem
+  Path to TLS certificate file.
+
+**--tlskey**=~/.docker/key.pem
+  Path to TLS key file.
+
+**--tlsverify**=*true*|*false*
   Use TLS and verify the remote (daemon: verify client, client: verify daemon).
   Default is false.
 
@@ -242,6 +263,10 @@ inside it)
   Push an image or a repository to a Docker Registry
   See **docker-push(1)** for full documentation on the **push** command.
 
+**rename**
+  Rename a container.
+  See **docker-rename(1)** for full documentation on the **rename** command.
+
 **restart**
   Restart a running container
   See **docker-restart(1)** for full documentation on the **restart** command.
@@ -346,7 +371,7 @@ the size of images and containers. The default value is 100G. Note,
 thin devices are inherently "sparse", so a 100G device which is mostly
 empty doesn't use 100 GB of space on the pool. However, the filesystem
 will use more space for base images the larger the device
-is. 
+is.
 
 This value affects the system-wide "base" empty filesystem that may already
 be initialized and inherited by pulled images. Typically, a change to this
@@ -411,7 +436,7 @@ Example use: `docker -d --storage-opt dm.loopdatasize=200G`
 **Note**: This option configures devicemapper loopback, which should not be used in production.
 
 Specifies the size to use when creating the loopback file for the
-"metadadata" device which is used for the thin pool. The default size
+"metadata" device which is used for the thin pool. The default size
 is 2G. The file is sparse, so it will not initially take up
 this much space.
 
@@ -473,7 +498,7 @@ When `udev` sync support is `true`, then `devicemapper` and `udev` can
 coordinate the activation and deactivation of devices for containers.
 
 When `udev` sync support is `false`, a race condition occurs between
-the`devicemapper` and `udev` during create and cleanup. The race
+the `devicemapper` and `udev` during create and cleanup. The race
 condition results in errors and failures. (For information on these
 failures, see
 [docker#4036](https://github.com/docker/docker/issues/4036))
@@ -497,12 +522,12 @@ daemon with a supported environment.
 
 Use the **--exec-opt** flags to specify options to the exec-driver. The only
 driver that accepts this flag is the *native* (libcontainer) driver. As a
-result, you must also specify **-s=**native for this option to have effect. The 
+result, you must also specify **-s=**native for this option to have effect. The
 following is the only *native* option:
 
 #### native.cgroupdriver
-Specifies the management of the container's `cgroups`. You can specify 
-`cgroupfs` or `systemd`. If you specify `systemd` and it is not available, the 
+Specifies the management of the container's `cgroups`. You can specify
+`cgroupfs` or `systemd`. If you specify `systemd` and it is not available, the
 system uses `cgroupfs`.
 
 #### Client

@@ -112,7 +112,7 @@ func allocateDaemonPort(addr string) error {
 
 func adjustCPUShares(version version.Version, hostConfig *runconfig.HostConfig) {
 	if version.LessThan("1.19") {
-		if hostConfig != nil && hostConfig.CPUShares > 0 {
+		if hostConfig != nil && hostConfig.CpuShares > 0 {
 			// Handle unsupported CpuShares
 			if hostConfig.CPUShares < linuxMinCPUShares {
 				logrus.Warnf("Changing requested CpuShares of %d to minimum allowed of %d", hostConfig.CPUShares, linuxMinCPUShares)

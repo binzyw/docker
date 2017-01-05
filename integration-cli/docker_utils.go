@@ -63,18 +63,18 @@ func enableUserlandProxy() bool {
 func NewDaemon(c *check.C) *Daemon {
 	dest := os.Getenv("DEST")
 	if dest == "" {
-		c.Fatal("Please set the DEST environment variable")
+		c.Fatal("please set the DEST environment variable")
 	}
 
 	id := fmt.Sprintf("d%d", time.Now().UnixNano()%100000000)
 	dir := filepath.Join(dest, id)
 	daemonFolder, err := filepath.Abs(dir)
 	if err != nil {
-		c.Fatalf("Could not make %q an absolute path: %v", dir, err)
+		c.Fatalf("could not make %q an absolute path: %v", dir, err)
 	}
 
 	if err := os.MkdirAll(filepath.Join(daemonFolder, "graph"), 0600); err != nil {
-		c.Fatalf("Could not create %s/graph directory", daemonFolder)
+		c.Fatalf("could not create %s/graph directory", daemonFolder)
 	}
 
 	userlandProxy := true
@@ -135,7 +135,7 @@ func (d *Daemon) Start(arg ...string) error {
 
 	d.logFile, err = os.OpenFile(filepath.Join(d.folder, "docker.log"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
-		d.c.Fatalf("[%s] Could not create %s/docker.log: %v", d.id, d.folder, err)
+		d.c.Fatalf("[%s] could not create %s/docker.log: %v", d.id, d.folder, err)
 	}
 
 	d.cmd.Stdout = d.logFile
@@ -162,7 +162,7 @@ func (d *Daemon) Start(arg ...string) error {
 		d.c.Logf("[%s] waiting for daemon to start", d.id)
 		if time.Now().Unix()-startTime > 5 {
 			// After 5 seconds, give up
-			return fmt.Errorf("[%s] Daemon exited and never started", d.id)
+			return fmt.Errorf("[%s] daemon exited and never started", d.id)
 		}
 		select {
 		case <-time.After(2 * time.Second):
@@ -216,7 +216,7 @@ func (d *Daemon) StartWithBusybox(arg ...string) error {
 		return fmt.Errorf("could not load busybox image: %v", err)
 	}
 	if err := os.Remove(bb); err != nil {
-		d.c.Logf("Could not remove %s: %v", bb, err)
+		d.c.Logf("could not remove %s: %v", bb, err)
 	}
 	return nil
 }
@@ -264,7 +264,7 @@ out2:
 				d.c.Logf("tried to interrupt daemon for %d times, now try to kill it", i)
 				break out2
 			}
-			d.c.Logf("Attempt #%d: daemon is still running with pid %d", i, d.cmd.Process.Pid)
+			d.c.Logf("attempt #%d: daemon is still running with pid %d", i, d.cmd.Process.Pid)
 			if err := d.cmd.Process.Signal(os.Interrupt); err != nil {
 				return fmt.Errorf("could not send signal: %v", err)
 			}
@@ -272,7 +272,7 @@ out2:
 	}
 
 	if err := d.cmd.Process.Kill(); err != nil {
-		d.c.Logf("Could not kill daemon: %v", err)
+		d.c.Logf("could not kill daemon: %v", err)
 		return err
 	}
 
@@ -425,7 +425,7 @@ func getAllContainers() (string, error) {
 	getContainersCmd := exec.Command(dockerBinary, "ps", "-q", "-a")
 	out, exitCode, err := runCommandWithOutput(getContainersCmd)
 	if exitCode != 0 && err == nil {
-		err = fmt.Errorf("failed to get a list of containers: %v\n", out)
+		err = fmt.Errorf("failed to get a list of containers: %v", out)
 	}
 
 	return out, err
@@ -500,7 +500,7 @@ func getPausedContainers() (string, error) {
 	getPausedContainersCmd := exec.Command(dockerBinary, "ps", "-f", "status=paused", "-q", "-a")
 	out, exitCode, err := runCommandWithOutput(getPausedContainersCmd)
 	if exitCode != 0 && err == nil {
-		err = fmt.Errorf("failed to get a list of paused containers: %v\n", out)
+		err = fmt.Errorf("failed to get a list of paused containers: %v", out)
 	}
 
 	return out, err

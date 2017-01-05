@@ -425,7 +425,7 @@ func (r *Session) GetRepositoryData(remote string) (*RepositoryData, error) {
 		// "Get https://index.docker.io/v1/repositories/library/busybox/images: i/o timeout"
 		// was a top search on the docker user forum
 		if strings.HasSuffix(err.Error(), "i/o timeout") {
-			return nil, fmt.Errorf("Network timed out while trying to connect to %s. You may want to check your internet connection or if you are behind a proxy.", repositoryTarget)
+			return nil, fmt.Errorf("network timed out while trying to connect to %s. You may want to check your internet connection or if you are behind a proxy", repositoryTarget)
 		}
 		return nil, fmt.Errorf("Error while pulling image: %v", err)
 	}

@@ -553,9 +553,9 @@ func PrintDefaults() {
 // defaultUsage is the default function to print a usage message.
 func defaultUsage(fs *FlagSet) {
 	if fs.name == "" {
-		fmt.Fprintf(fs.Out(), "Usage:\n")
+		fmt.Fprintf(fs.Out(), "usage:")
 	} else {
-		fmt.Fprintf(fs.Out(), "Usage of %s:\n", fs.name)
+		fmt.Fprintf(fs.Out(), "usage of %s:", fs.name)
 	}
 	fs.PrintDefaults()
 }
@@ -567,14 +567,14 @@ func defaultUsage(fs *FlagSet) {
 // Usage prints to standard error a usage message documenting all defined command-line flags.
 // The function is a variable that may be changed to point to a custom function.
 var Usage = func() {
-	fmt.Fprintf(CommandLine.Out(), "Usage of %s:\n", os.Args[0])
+	fmt.Fprintf(CommandLine.Out(), "usage of %s:", os.Args[0])
 	PrintDefaults()
 }
 
-// Usage prints to standard error a usage message documenting the standard command layout
+// ShortUsage prints to standard error a usage message documenting the standard command layout
 // The function is a variable that may be changed to point to a custom function.
 var ShortUsage = func() {
-	fmt.Fprintf(CommandLine.output, "Usage of %s:\n", os.Args[0])
+	fmt.Fprintf(CommandLine.output, "usage of %s:", os.Args[0])
 }
 
 // FlagCount returns the number of flags that have been defined.
@@ -880,9 +880,9 @@ func (fs *FlagSet) failf(format string, a ...interface{}) error {
 	err := fmt.Errorf(format, a...)
 	fmt.Fprintln(fs.Out(), err)
 	if os.Args[0] == fs.name {
-		fmt.Fprintf(fs.Out(), "See '%s --help'.\n", os.Args[0])
+		fmt.Fprintf(fs.Out(), "See '%s --help'.", os.Args[0])
 	} else {
-		fmt.Fprintf(fs.Out(), "See '%s %s --help'.\n", os.Args[0], fs.name)
+		fmt.Fprintf(fs.Out(), "See '%s %s --help'.", os.Args[0], fs.name)
 	}
 	return err
 }

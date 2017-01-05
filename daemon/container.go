@@ -41,6 +41,14 @@ var (
 	ErrContainerRootfsReadonly = errors.New("container rootfs is marked read-only")
 )
 
+type ErrContainerNotRunning struct {
+	id string
+}
+
+func (e ErrContainerNotRunning) Error() string {
+	return fmt.Sprintf("Container %s is not running", e.id)
+}
+
 type StreamConfig struct {
 	stdout    *broadcastwriter.BroadcastWriter
 	stderr    *broadcastwriter.BroadcastWriter
@@ -361,7 +369,7 @@ func (container *Container) KillSig(sig int) error {
 	}
 
 	if !container.Running {
-		return fmt.Errorf("Container %s is not running", container.ID)
+		return ErrContainerNotRunning{container.ID}
 	}
 
 	// signal to the monitor that it should not restart the container
@@ -398,7 +406,7 @@ func (container *Container) Pause() error {
 
 	// We cannot Pause the container which is not running
 	if !container.Running {
-		return fmt.Errorf("Container %s is not running, cannot pause a non-running container", container.ID)
+		return ErrContainerNotRunning{container.ID}
 	}
 
 	// We cannot Pause the container which is already paused
@@ -420,7 +428,7 @@ func (container *Container) Unpause() error {
 
 	// We cannot unpause the container which is not running
 	if !container.Running {
-		return fmt.Errorf("Container %s is not running, cannot unpause a non-running container", container.ID)
+		return ErrContainerNotRunning{container.ID}
 	}
 
 	// We cannot unpause the container which is not paused
@@ -438,7 +446,7 @@ func (container *Container) Unpause() error {
 
 func (container *Container) Kill() error {
 	if !container.IsRunning() {
-		return fmt.Errorf("Container %s is not running", container.ID)
+		return ErrContainerNotRunning{container.ID}
 	}
 
 	// 1. Send SIGKILL
@@ -520,7 +528,7 @@ func (container *Container) Restart(seconds int) error {
 
 func (container *Container) Resize(h, w int) error {
 	if !container.IsRunning() {
-		return fmt.Errorf("Cannot resize container %s, container is not running", container.ID)
+		return ErrContainerNotRunning{container.ID}
 	}
 	if err := container.command.ProcessConfig.Terminal.Resize(h, w); err != nil {
 		return err
@@ -1064,6 +1072,98 @@ func copyEscapable(dst io.Writer, src io.ReadCloser) (written int64, err error) 
 		}
 	}
 	return written, err
+}
+
+func (container *Container) networkMounts() []execdriver.Mount {
+	var mounts []execdriver.Mount
+	mode := "Z"
+	if container.hostConfig.NetworkMode.IsContainer() {
+		mode = "z"
+	}
+	if container.ResolvConfPath != "" {
+		label.Relabel(container.ResolvConfPath, container.MountLabel, mode)
+		mounts = append(mounts, execdriver.Mount{
+			Source:      container.ResolvConfPath,
+			Destination: "/etc/resolv.conf",
+			Writable:    !container.hostConfig.ReadonlyRootfs,
+			Private:     true,
+		})
+	}
+	if container.HostnamePath != "" {
+		label.Relabel(container.HostnamePath, container.MountLabel, mode)
+		mounts = append(mounts, execdriver.Mount{
+			Source:      container.HostnamePath,
+			Destination: "/etc/hostname",
+			Writable:    !container.hostConfig.ReadonlyRootfs,
+			Private:     true,
+		})
+	}
+	if container.HostsPath != "" {
+		label.Relabel(container.HostsPath, container.MountLabel, mode)
+		mounts = append(mounts, execdriver.Mount{
+			Source:      container.HostsPath,
+			Destination: "/etc/hosts",
+			Writable:    !container.hostConfig.ReadonlyRootfs,
+			Private:     true,
+		})
+	}
+	return mounts
+}
+
+func (container *Container) addBindMountPoint(name, source, destination string, rw bool) {
+	container.MountPoints[destination] = &mountPoint{
+		Name:        name,
+		Source:      source,
+		Destination: destination,
+		RW:          rw,
+	}
+}
+
+func (container *Container) addLocalMountPoint(name, destination string, rw bool) {
+	container.MountPoints[destination] = &mountPoint{
+		Name:        name,
+		Driver:      volume.DefaultDriverName,
+		Destination: destination,
+		RW:          rw,
+	}
+}
+
+func (container *Container) addMountPointWithVolume(destination string, vol volume.Volume, rw bool) {
+	container.MountPoints[destination] = &mountPoint{
+		Name:        vol.Name(),
+		Driver:      vol.DriverName(),
+		Destination: destination,
+		RW:          rw,
+		Volume:      vol,
+	}
+}
+
+func (container *Container) isDestinationMounted(destination string) bool {
+	return container.MountPoints[destination] != nil
+}
+
+func (container *Container) prepareMountPoints() error {
+	for _, config := range container.MountPoints {
+		if len(config.Driver) > 0 {
+			v, err := createVolume(config.Name, config.Driver)
+			if err != nil {
+				return err
+			}
+			config.Volume = v
+		}
+	}
+	return nil
+}
+
+func (container *Container) removeMountPoints() error {
+	for _, m := range container.MountPoints {
+		if m.Volume != nil {
+			if err := removeVolume(m.Volume); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (container *Container) shouldRestart() bool {
